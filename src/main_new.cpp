@@ -7,10 +7,7 @@
 
 // 프로젝트 헤더들
 #include "camera/Camera.h"
-#include "mesh/Cube.h"
 #include "mesh/Mesh.h"
-#include "physics/Ball.h"
-#include "physics/Collision.h"
 #include "shader/Shader.h"
 
 int main() {
@@ -86,16 +83,8 @@ int main() {
   walls.push_back(createWall("wall_right", glm::vec3(10, 0, 0),
                              glm::vec3(0, -90, 0))); // 오른쪽 벽
 
-  // 체크무늬 공 생성
-  Ball ball(glm::vec3(0.0f, 5.0f, 0.0f), 1.0f, 1.0f);
-  ball.velocity = glm::vec3(2.0f, 0.0f, 1.0f); // 초기 속도
-
-  // 노란색-검은색 체크무늬 정육면체 생성
-  Cube cube(glm::vec3(0.0f, 15.0f, 0.0f), 1.5f, 2.0f);
-  cube.velocity = glm::vec3(1.0f, 0.0f, 0.5f); // 초기 속도
-
-  // 카메라 설정 - 방 중앙에 위치 (방 크기: -10~10, 높이: 0~20)
-  Camera camera(glm::vec3(0.0f, 10.0f, 0.0f));
+  // 카메라 설정 - 방 크기에 맞게 조정
+  Camera camera(glm::vec3(0.0f, 3.0f, 15.0f));
 
   // 투영 매트릭스
   glm::mat4 projection =
@@ -167,38 +156,11 @@ int main() {
     // 카메라 업데이트
     camera.update(deltaTime);
 
-    // 공 물리 업데이트
-    ball.update(deltaTime);
-
-    // 정육면체 물리 업데이트
-    cube.update(deltaTime);
-
     // 충돌 감지 및 처리
     std::vector<Mesh> allMeshes;
     allMeshes.push_back(floor);
     allMeshes.insert(allMeshes.end(), walls.begin(), walls.end());
     camera.handleCollision(allMeshes);
-
-    // 공과 방 충돌 처리
-    CollisionSystem::handleRoomCollisions(ball, walls, floor);
-
-    // 정육면체와 방 충돌 처리
-    CollisionSystem::handleCubeRoomCollisions(cube, walls, floor);
-
-    // 공과 카메라 충돌 처리
-    if (CollisionSystem::checkBallCameraCollision(ball, camera.position)) {
-      CollisionSystem::handleBallCameraCollision(ball, camera.position);
-    }
-
-    // 정육면체와 카메라 충돌 처리
-    if (CollisionSystem::checkCubeCameraCollision(cube, camera.position)) {
-      CollisionSystem::handleCubeCameraCollision(cube, camera.position);
-    }
-
-    // 정육면체와 구 충돌 처리
-    if (CollisionSystem::checkCubeBallCollision(cube, ball)) {
-      CollisionSystem::handleCubeBallCollision(cube, ball);
-    }
 
     // 배경색 설정 (#aaaaaa)
     glClearColor(0.666f, 0.666f, 0.666f, 1.0f);
@@ -234,24 +196,6 @@ int main() {
       glDrawElements(GL_TRIANGLES, wall.indices.size(), GL_UNSIGNED_INT, 0);
     }
 
-    // 공 렌더링
-    glBindVertexArray(ball.VAO);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, ball.texture);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1,
-                       GL_FALSE, &ball.modelMatrix[0][0]);
-    glDrawElements(GL_TRIANGLES, ball.indices.size(), GL_UNSIGNED_INT, 0);
-
-    // 정육면체 렌더링
-    glBindVertexArray(cube.VAO);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, cube.texture);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1,
-                       GL_FALSE, &cube.modelMatrix[0][0]);
-    glDrawElements(GL_TRIANGLES, cube.indices.size(), GL_UNSIGNED_INT, 0);
-
     glBindVertexArray(0);
 
     // 버퍼 교체
@@ -259,8 +203,6 @@ int main() {
   }
 
   // 정리
-  ball.cleanup();
-  cube.cleanup();
   SDL_GL_DeleteContext(glContext);
   SDL_DestroyWindow(window);
   SDL_Quit();

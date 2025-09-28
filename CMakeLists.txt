@@ -10,6 +10,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # 소스 파일
 set(SOURCES
     src/main.cpp
+    src/camera/Camera.cpp
+    src/mesh/Mesh.cpp
+    src/mesh/Cube.cpp
+    src/shader/Shader.cpp
+    src/utils/TextureUtils.cpp
+    src/physics/Ball.cpp
+    src/physics/Collision.cpp
     src/includes/glad/glad.c
 )
 
